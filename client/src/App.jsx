@@ -5,6 +5,8 @@ import PrivateRoute from './components/PrivateRoute';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import CreateTrip from './pages/CreateTrip';
+import TripDetail from './pages/TripDetail';
 
 function App() {
   return (
@@ -16,6 +18,16 @@ function App() {
             <Route path="/" element={
               <PrivateRoute>
                 <Home />
+              </PrivateRoute>
+            } />
+            <Route path="/trips/create" element={
+              <PrivateRoute>
+                <CreateTrip />
+              </PrivateRoute>
+            } />
+            <Route path="/trips/:id" element={
+              <PrivateRoute>
+                <TripDetail />
               </PrivateRoute>
             } />
             <Route path="/login" element={<Login />} />
