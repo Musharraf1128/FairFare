@@ -1,7 +1,9 @@
 import axios from 'axios';
 
+console.log(import.meta.env.VITE_API_BASE_URL)
+
 const API = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL,
+  baseURL: import.meta.env.VITE_API_BASE_URL, 
 });
 
 // Add token to requests automatically
