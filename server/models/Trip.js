@@ -23,9 +23,17 @@ const tripSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Expense'
   }],
+  messages: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Message'
+  }],
   totalExpenses: {
     type: Number,
     default: 0
+  },
+  lastActivity: {
+    type: Date,
+    default: Date.now
   }
 }, {
   timestamps: true

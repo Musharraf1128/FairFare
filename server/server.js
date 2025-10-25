@@ -20,6 +20,9 @@ app.use(express.urlencoded({ extended: false }));
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/trips', require('./routes/tripRoutes'));
 app.use('/api/expenses', require('./routes/expenseRoutes'));
+app.use('/api/profile', require('./routes/profileRoutes'));
+app.use('/api/friends', require('./routes/friendRoutes'));
+app.use('/api/trips', require('./routes/messageRoutes')); // Add this
 
 // Test route
 app.get('/', (req, res) => {
@@ -29,5 +32,5 @@ app.get('/', (req, res) => {
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`🚀 Server running on port ${PORT}`);
 });

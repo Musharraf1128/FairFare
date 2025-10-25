@@ -1,5 +1,6 @@
 const Expense = require('../models/Expense');
 const Trip = require('../models/Trip');
+const Message = require('../models/Message');
 
 // @desc    Get all expenses for a trip
 // @route   GET /api/trips/:tripId/expenses
@@ -105,6 +106,19 @@ const addExpense = async (req, res) => {
     // Add expense to trip and update total
     trip.expenses.push(expense._id);
     trip.totalExpenses = (trip.totalExpenses || 0) + parseFloat(amount);
+    await trip.save();
+
+    // CREATE SYSTEM MESSAGE FOR NEW EXPENSE
+    const payer = await User.findById(paidBy);
+    const systemMessage = await Message.create({
+      tripId: req.params.tripId,
+      sender: req.user.id,
+      content: `${payer.name} added an expense: ${description} - ₹${amount}`,
+      messageType: 'expense',
+      relatedExpense: expense._id
+    });
+    trip.messages.push(systemMessage._id);
+    trip.lastActivity = Date.now();
     await trip.save();
 
     // Populate and return

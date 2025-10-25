@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import API from '../utils/api';
 
@@ -7,19 +7,33 @@ const CreateTrip = () => {
     name: '',
     description: '',
   });
+  const [friends, setFriends] = useState([]);
+  const [selectedMembers, setSelectedMembers] = useState([]);
+  const [showSearch, setShowSearch] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
-  const [selectedMembers, setSelectedMembers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [searching, setSearching] = useState(false);
   const navigate = useNavigate();
 
+  useEffect(() => {
+    fetchFriends();
+  }, []);
+
+  const fetchFriends = async () => {
+    try {
+      const { data } = await API.get('/friends');
+      setFriends(data);
+    } catch (err) {
+      console.error('Error fetching friends:', err);
+    }
+  };
+
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // Search users as you type
   const handleSearch = async (query) => {
     setSearchQuery(query);
     
@@ -31,7 +45,6 @@ const CreateTrip = () => {
     setSearching(true);
     try {
       const { data } = await API.get(`/trips/users/search?query=${query}`);
-      // Filter out already selected members
       const filtered = data.filter(
         user => !selectedMembers.some(member => member._id === user._id)
       );
@@ -43,14 +56,14 @@ const CreateTrip = () => {
     }
   };
 
-  // Add member to selected list
   const addMember = (user) => {
-    setSelectedMembers([...selectedMembers, user]);
+    if (!selectedMembers.some(m => m._id === user._id)) {
+      setSelectedMembers([...selectedMembers, user]);
+    }
     setSearchQuery('');
     setSearchResults([]);
   };
 
-  // Remove member from selected list
   const removeMember = (userId) => {
     setSelectedMembers(selectedMembers.filter(member => member._id !== userId));
   };
@@ -74,6 +87,11 @@ const CreateTrip = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const getAvatarUrl = (avatar, name) => {
+    if (avatar) return avatar;
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(name || 'User')}&background=2563eb&color=fff&size=50`;
   };
 
   return (
@@ -119,44 +137,94 @@ const CreateTrip = () => {
             />
           </div>
 
-          {/* Members Search */}
+          {/* Members */}
           <div>
             <label className="block text-gray-700 font-medium mb-2">
               Add Members
             </label>
             <p className="text-sm text-gray-500 mb-3">
-              Search by name or email. You will be automatically added as a member.
+              You will be automatically added as a member
             </p>
 
-            {/* Search Input */}
-            <div className="relative">
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => handleSearch(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Search users by name or email..."
-              />
-              
-              {/* Search Results Dropdown */}
-              {searchQuery.length >= 2 && (
-                <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-                  {searching ? (
-                    <div className="px-4 py-3 text-gray-500">Searching...</div>
-                  ) : searchResults.length > 0 ? (
-                    searchResults.map((user) => (
-                      <div
-                        key={user._id}
-                        onClick={() => addMember(user)}
-                        className="px-4 py-3 hover:bg-blue-50 cursor-pointer border-b last:border-b-0"
+            {/* Friends quick select */}
+            {friends.length > 0 && (
+              <div className="mb-4">
+                <p className="text-sm font-medium text-gray-700 mb-2">Select from friends:</p>
+                <div className="flex flex-wrap gap-2">
+                  {friends.map(friend => {
+                    const isSelected = selectedMembers.some(m => m._id === friend._id);
+                    return (
+                      <button
+                        key={friend._id}
+                        type="button"
+                        onClick={() => isSelected ? removeMember(friend._id) : addMember(friend)}
+                        className={`flex items-center space-x-2 px-3 py-2 rounded-lg border-2 transition ${
+                          isSelected
+                            ? 'bg-blue-50 border-blue-500 text-blue-700'
+                            : 'bg-white border-gray-300 text-gray-700 hover:border-blue-300'
+                        }`}
                       >
-                        <p className="font-medium text-gray-800">{user.name}</p>
-                        <p className="text-sm text-gray-500">{user.email}</p>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="px-4 py-3 text-gray-500">
-                      No users found. They need to register first.
+                        <img
+                          src={getAvatarUrl(friend.avatar, friend.name)}
+                          alt={friend.name}
+                          className="w-6 h-6 rounded-full"
+                        />
+                        <span className="text-sm">{friend.name}</span>
+                        {isSelected && <span>✓</span>}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Search for other users */}
+            <div>
+              <button
+                type="button"
+                onClick={() => setShowSearch(!showSearch)}
+                className="text-blue-600 hover:text-blue-700 font-medium text-sm mb-2"
+              >
+                {showSearch ? '− Hide search' : '+ Search for other users'}
+              </button>
+
+              {showSearch && (
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => handleSearch(e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Search users by name or email..."
+                  />
+                  
+                  {searchQuery.length >= 2 && (
+                    <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                      {searching ? (
+                        <div className="px-4 py-3 text-gray-500">Searching...</div>
+                      ) : searchResults.length > 0 ? (
+                        searchResults.map((user) => (
+                          <div
+                            key={user._id}
+                            onClick={() => addMember(user)}
+                            className="px-4 py-3 hover:bg-blue-50 cursor-pointer border-b last:border-b-0 flex items-center space-x-3"
+                          >
+                            <img
+                              src={getAvatarUrl(user.avatar, user.name)}
+                              alt={user.name}
+                              className="w-10 h-10 rounded-full"
+                            />
+                            <div>
+                              <p className="font-medium text-gray-800">{user.name}</p>
+                              <p className="text-sm text-gray-500">{user.email}</p>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="px-4 py-3 text-gray-500">
+                          No users found
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -172,9 +240,16 @@ const CreateTrip = () => {
                     key={member._id}
                     className="flex items-center justify-between bg-blue-50 px-4 py-2 rounded-lg"
                   >
-                    <div>
-                      <p className="font-medium text-gray-800">{member.name}</p>
-                      <p className="text-sm text-gray-500">{member.email}</p>
+                    <div className="flex items-center space-x-3">
+                      <img
+                        src={getAvatarUrl(member.avatar, member.name)}
+                        alt={member.name}
+                        className="w-10 h-10 rounded-full"
+                      />
+                      <div>
+                        <p className="font-medium text-gray-800">{member.name}</p>
+                        <p className="text-sm text-gray-500">{member.email}</p>
+                      </div>
                     </div>
                     <button
                       type="button"

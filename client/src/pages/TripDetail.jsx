@@ -4,7 +4,8 @@ import { AuthContext } from '../context/AuthContext';
 import API from '../utils/api';
 import AddExpenseModal from '../components/AddExpenseModal';
 import ExpenseCard from '../components/ExpenseCard';
-import SettlementSection from '../components/SettlementSection'; // Add this import
+import SettlementSection from '../components/SettlementSection'; 
+import TripChat from '../components/TripChat';
 
 const TripDetail = () => {
   const { id } = useParams();
@@ -193,6 +194,16 @@ const TripDetail = () => {
               >
                 ⚖️ Settlement
               </button>
+              <button
+                onClick={() => setActiveTab('chat')}
+                className={`flex-1 px-6 py-4 font-semibold transition ${
+                  activeTab === 'chat'
+                    ? 'text-blue-600 border-b-2 border-blue-600'
+                    : 'text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                💬 Chat
+              </button>
             </div>
 
             {/* Tab Content */}
@@ -234,7 +245,11 @@ const TripDetail = () => {
 
               {activeTab === 'settlement' && (
                 <SettlementSection tripId={id} currentUserId={user._id} tripName={trip.name} />
-              )}            
+              )}  
+
+              {activeTab === 'chat' && (
+                <TripChat tripId={id} members={trip.members} />
+              )}          
             </div>
           </div>
         </div>
