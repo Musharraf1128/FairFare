@@ -96,11 +96,11 @@ const CreateTrip = () => {
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">
-      <div className="bg-white rounded-lg shadow-md p-8">
-        <h2 className="text-3xl font-bold text-gray-800 mb-6">Create New Trip</h2>
+      <div className="card fade-in">
+        <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">Create New Trip</h2>
 
         {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+          <div className="bg-red-100 dark:bg-red-900/20 border border-red-400 dark:border-red-500 text-red-700 dark:text-red-400 px-4 py-3 rounded mb-4">
             {error}
           </div>
         )}
@@ -108,7 +108,7 @@ const CreateTrip = () => {
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Trip Name */}
           <div>
-            <label className="block text-gray-700 font-medium mb-2">
+            <label className="block text-gray-700 dark:text-gray-300 font-medium mb-2">
               Trip Name *
             </label>
             <input
@@ -117,14 +117,14 @@ const CreateTrip = () => {
               value={formData.name}
               onChange={handleChange}
               required
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="input"
               placeholder="e.g., Goa Trip 2025"
             />
           </div>
 
           {/* Description */}
           <div>
-            <label className="block text-gray-700 font-medium mb-2">
+            <label className="block text-gray-700 dark:text-gray-300 font-medium mb-2">
               Description (Optional)
             </label>
             <textarea
@@ -132,24 +132,24 @@ const CreateTrip = () => {
               value={formData.description}
               onChange={handleChange}
               rows="3"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="input"
               placeholder="Beach vacation with college friends"
             />
           </div>
 
           {/* Members */}
           <div>
-            <label className="block text-gray-700 font-medium mb-2">
+            <label className="block text-gray-700 dark:text-gray-300 font-medium mb-2">
               Add Members
             </label>
-            <p className="text-sm text-gray-500 mb-3">
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">
               You will be automatically added as a member
             </p>
 
             {/* Friends quick select */}
             {friends.length > 0 && (
               <div className="mb-4">
-                <p className="text-sm font-medium text-gray-700 mb-2">Select from friends:</p>
+                <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Select from friends:</p>
                 <div className="flex flex-wrap gap-2">
                   {friends.map(friend => {
                     const isSelected = selectedMembers.some(m => m._id === friend._id);
@@ -269,14 +269,14 @@ const CreateTrip = () => {
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition disabled:bg-blue-300"
+              className="flex-1 btn-primary py-3 rounded-lg font-semibold disabled:bg-gray-400"
             >
               {loading ? 'Creating...' : 'Create Trip'}
             </button>
             <button
               type="button"
               onClick={() => navigate('/')}
-              className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition"
+              className="btn-secondary px-6 py-3"
             >
               Cancel
             </button>

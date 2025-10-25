@@ -15,7 +15,7 @@ const Toast = ({ message, type = 'success', onClose }) => {
     <div className={`fixed bottom-4 right-4 ${bgColor} text-white px-6 py-4 rounded-lg shadow-lg z-50 animate-fadeIn`}>
       <div className="flex items-center space-x-3">
         <span className="text-2xl">
-          {type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️'}
+          {type === 'success' ? 'success' : type === 'error' ? 'error' : 'ℹ️'}
         </span>
         <p className="font-medium">{message}</p>
         <button onClick={onClose} className="ml-4 text-white hover:text-gray-200">

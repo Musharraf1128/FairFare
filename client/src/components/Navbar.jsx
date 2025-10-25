@@ -1,6 +1,7 @@
 import { useContext, useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
+import ThemeToggle from './ThemeToggle';
 import API from '../utils/api';
 
 const Navbar = () => {
@@ -55,13 +56,15 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="bg-white shadow-md sticky top-0 z-50">
+    <nav className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50 backdrop-blur-sm bg-white/95 dark:bg-gray-900/95">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center space-x-8">
-            <Link to="/" className="text-2xl font-bold text-blue-600 flex items-center">
-              <span className="mr-2">💸</span>
-              <span className="hidden sm:inline">TripSplit</span>
+            <Link to="/" className="text-2xl font-bold text-gray-900 dark:text-white flex items-center hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+              <svg className="w-8 h-8 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+              </svg>
+              <span className="hidden sm:inline">FairFare</span>
             </Link>
             
             {user && (
@@ -70,8 +73,8 @@ const Navbar = () => {
                   to="/"
                   className={`font-medium transition relative ${
                     isActive('/') 
-                      ? 'text-blue-600 border-b-2 border-blue-600' 
-                      : 'text-gray-700 hover:text-blue-600'
+                      ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400' 
+                      : 'text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400'
                   }`}
                 >
                   Trips
@@ -85,8 +88,8 @@ const Navbar = () => {
                   to="/dashboard"
                   className={`font-medium transition ${
                     isActive('/dashboard') 
-                      ? 'text-blue-600 border-b-2 border-blue-600' 
-                      : 'text-gray-700 hover:text-blue-600'
+                      ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400' 
+                      : 'text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400'
                   }`}
                 >
                   Dashboard
@@ -95,8 +98,8 @@ const Navbar = () => {
                   to="/friends"
                   className={`font-medium transition ${
                     isActive('/friends') 
-                      ? 'text-blue-600 border-b-2 border-blue-600' 
-                      : 'text-gray-700 hover:text-blue-600'
+                      ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400' 
+                      : 'text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400'
                   }`}
                 >
                   Friends
@@ -106,19 +109,20 @@ const Navbar = () => {
           </div>
 
           <div className="flex items-center space-x-4">
+            <ThemeToggle />
             {user ? (
               <>
-                <Link to="/profile" className="hidden md:flex items-center space-x-2 hover:bg-gray-50 px-3 py-2 rounded-lg transition">
+                <Link to="/profile" className="hidden md:flex items-center space-x-2 hover:bg-gray-100 dark:hover:bg-gray-800 px-3 py-2 rounded-lg transition">
                   <img
                     src={getAvatarUrl(user.avatar, user.name)}
                     alt={user.name}
                     className="w-8 h-8 rounded-full"
                   />
-                  <span className="text-gray-700 font-medium">{user.name.split(' ')[0]}</span>
+                  <span className="text-gray-700 dark:text-gray-300 font-medium">{user.name.split(' ')[0]}</span>
                 </Link>
                 <button
                   onClick={handleLogout}
-                  className="hidden md:block bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition"
+                  className="hidden md:block btn-danger px-4 py-2 rounded-lg"
                 >
                   Logout
                 </button>
@@ -126,7 +130,7 @@ const Navbar = () => {
                 {/* Mobile menu button */}
                 <button
                   onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                  className="md:hidden text-gray-700 hover:text-blue-600 relative"
+                  className="md:hidden text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 relative"
                 >
                   {totalUnread > 0 && (
                     <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
@@ -146,13 +150,13 @@ const Navbar = () => {
               <>
                 <Link
                   to="/login"
-                  className="text-gray-700 hover:text-blue-600 transition"
+                  className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition"
                 >
                   Login
                 </Link>
                 <Link
                   to="/register"
-                  className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
+                  className="btn-primary px-4 py-2 rounded-lg"
                 >
                   Register
                 </Link>
@@ -164,30 +168,30 @@ const Navbar = () => {
 
       {/* Mobile menu */}
       {user && mobileMenuOpen && (
-        <div className="md:hidden bg-white border-t">
+        <div className="md:hidden bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700">
           <div className="px-4 pt-2 pb-3 space-y-1">
             <Link
               to="/profile"
               onClick={() => setMobileMenuOpen(false)}
-              className="flex items-center space-x-2 px-3 py-2 rounded-md"
+              className="flex items-center space-x-2 px-3 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800"
             >
               <img
                 src={getAvatarUrl(user.avatar, user.name)}
                 alt={user.name}
                 className="w-8 h-8 rounded-full"
               />
-              <span className="font-medium text-gray-700">{user.name}</span>
+              <span className="font-medium text-gray-700 dark:text-gray-300">{user.name}</span>
             </Link>
             <Link
               to="/"
               onClick={() => setMobileMenuOpen(false)}
               className={`block px-3 py-2 rounded-md font-medium relative ${
                 isActive('/') 
-                  ? 'bg-blue-50 text-blue-600' 
-                  : 'text-gray-700 hover:bg-gray-50'
+                  ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400' 
+                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
               }`}
             >
-              🌍 Trips
+              Trips
               {totalUnread > 0 && (
                 <span className="ml-2 bg-red-500 text-white text-xs rounded-full px-2 py-1">
                   {totalUnread}
@@ -199,35 +203,35 @@ const Navbar = () => {
               onClick={() => setMobileMenuOpen(false)}
               className={`block px-3 py-2 rounded-md font-medium ${
                 isActive('/dashboard') 
-                  ? 'bg-blue-50 text-blue-600' 
-                  : 'text-gray-700 hover:bg-gray-50'
+                  ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400' 
+                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
               }`}
             >
-              📊 Dashboard
+              Dashboard
             </Link>
             <Link
               to="/friends"
               onClick={() => setMobileMenuOpen(false)}
               className={`block px-3 py-2 rounded-md font-medium ${
                 isActive('/friends') 
-                  ? 'bg-blue-50 text-blue-600' 
-                  : 'text-gray-700 hover:bg-gray-50'
+                  ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400' 
+                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
               }`}
             >
-              👥 Friends
+              Friends
             </Link>
             <Link
               to="/trips/create"
               onClick={() => setMobileMenuOpen(false)}
-              className="block px-3 py-2 rounded-md font-medium text-gray-700 hover:bg-gray-50"
+              className="block px-3 py-2 rounded-md font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
             >
-              ➕ Create Trip
+              Create Trip
             </Link>
             <button
               onClick={handleLogout}
-              className="w-full text-left px-3 py-2 rounded-md font-medium text-red-600 hover:bg-red-50"
+              className="w-full text-left px-3 py-2 rounded-md font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
             >
-              🚪 Logout
+              Logout
             </button>
           </div>
         </div>

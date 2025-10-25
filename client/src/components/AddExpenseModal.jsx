@@ -127,12 +127,12 @@ const AddExpenseModal = ({ tripId, members, onClose, onExpenseAdded }) => {
                   onChange={handleChange}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
-                  <option value="food">🍔 Food</option>
-                  <option value="transport">🚗 Transport</option>
-                  <option value="accommodation">🏨 Accommodation</option>
-                  <option value="entertainment">🎉 Entertainment</option>
-                  <option value="shopping">🛍️ Shopping</option>
-                  <option value="other">📝 Other</option>
+                  <option value="food">Food</option>
+                  <option value="transport">Transport</option>
+                  <option value="accommodation">Accommodation</option>
+                  <option value="entertainment">Entertainment</option>
+                  <option value="shopping">Shopping</option>
+                  <option value="other">Other</option>
                 </select>
               </div>
             </div>
