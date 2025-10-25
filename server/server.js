@@ -18,7 +18,8 @@ app.use(express.urlencoded({ extended: false }));
 
 // Routes
 app.use('/api/auth', require('./routes/authRoutes'));
-app.use('/api/trips', require('./routes/tripRoutes')); // Add this line
+app.use('/api/trips', require('./routes/tripRoutes'));
+app.use('/api/expenses', require('./routes/expenseRoutes'));
 
 // Test route
 app.get('/', (req, res) => {

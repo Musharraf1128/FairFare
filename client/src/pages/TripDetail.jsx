@@ -2,31 +2,41 @@ import { useState, useEffect, useContext } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import API from '../utils/api';
+import AddExpenseModal from '../components/AddExpenseModal';
+import ExpenseCard from '../components/ExpenseCard';
+import SettlementSection from '../components/SettlementSection'; // Add this import
 
 const TripDetail = () => {
   const { id } = useParams();
   const { user } = useContext(AuthContext);
   const navigate = useNavigate();
   const [trip, setTrip] = useState(null);
+  const [expenses, setExpenses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [activeTab, setActiveTab] = useState('expenses'); // Add this state
 
   useEffect(() => {
-    fetchTrip();
+    fetchTripData();
   }, [id]);
 
-  const fetchTrip = async () => {
+  const fetchTripData = async () => {
     try {
-      const { data } = await API.get(`/trips/${id}`);
-      setTrip(data);
+      const [tripRes, expensesRes] = await Promise.all([
+        API.get(`/trips/${id}`),
+        API.get(`/expenses/${id}/expenses`)
+      ]);
+      setTrip(tripRes.data);
+      setExpenses(expensesRes.data);
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to fetch trip');
+      setError(err.response?.data?.message || 'Failed to fetch data');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleDelete = async () => {
+  const handleDeleteTrip = async () => {
     if (!window.confirm('Are you sure you want to delete this trip?')) return;
 
     try {
@@ -35,6 +45,27 @@ const TripDetail = () => {
     } catch (err) {
       alert(err.response?.data?.message || 'Failed to delete trip');
     }
+  };
+
+  const handleDeleteExpense = async (expenseId) => {
+    if (!window.confirm('Are you sure you want to delete this expense?')) return;
+
+    try {
+      await API.delete(`/expenses/${expenseId}`);
+      setExpenses(expenses.filter(exp => exp._id !== expenseId));
+      // Refresh trip to update total
+      const { data } = await API.get(`/trips/${id}`);
+      setTrip(data);
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to delete expense');
+    }
+  };
+
+  const handleExpenseAdded = async (newExpense) => {
+    setExpenses([newExpense, ...expenses]);
+    // Refresh trip to update total
+    const { data } = await API.get(`/trips/${id}`);
+    setTrip(data);
   };
 
   if (loading) {
@@ -61,7 +92,7 @@ const TripDetail = () => {
   const isCreator = trip.createdBy._id === user._id;
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-8">
+    <div className="max-w-6xl mx-auto px-4 py-8">
       {/* Header */}
       <div className="bg-white rounded-lg shadow-md p-6 mb-6">
         <div className="flex justify-between items-start">
@@ -82,7 +113,7 @@ const TripDetail = () => {
 
           {isCreator && (
             <button
-              onClick={handleDelete}
+              onClick={handleDeleteTrip}
               className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
             >
               Delete Trip
@@ -92,78 +123,132 @@ const TripDetail = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Members Section */}
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">
-            👥 Members ({trip.members.length})
-          </h2>
-          <div className="space-y-3">
-            {trip.members.map((member) => (
-              <div key={member._id} className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                  <span className="text-blue-600 font-semibold">
-                    {member.name.charAt(0).toUpperCase()}
-                  </span>
-                </div>
-                <div>
-                  <p className="font-medium text-gray-800">{member.name}</p>
-                  <p className="text-sm text-gray-500">{member.email}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Summary Section */}
-        <div className="lg:col-span-2 space-y-6">
+        {/* Left Sidebar - Members */}
+        <div className="space-y-6">
           <div className="bg-white rounded-lg shadow-md p-6">
             <h2 className="text-xl font-semibold text-gray-800 mb-4">
-              💰 Expense Summary
+              👥 Members ({trip.members.length})
             </h2>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="bg-blue-50 p-4 rounded-lg">
+            <div className="space-y-3">
+              {trip.members.map((member) => (
+                <div key={member._id} className="flex items-center space-x-3">
+                  <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                    <span className="text-blue-600 font-semibold">
+                      {member.name.charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-800">{member.name}</p>
+                    <p className="text-sm text-gray-500">{member.email}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Summary Stats */}
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <h2 className="text-xl font-semibold text-gray-800 mb-4">
+              💰 Summary
+            </h2>
+            <div className="space-y-3">
+              <div className="bg-blue-50 p-3 rounded-lg">
                 <p className="text-sm text-gray-600 mb-1">Total Expenses</p>
                 <p className="text-2xl font-bold text-blue-600">
                   ₹{trip.totalExpenses.toFixed(2)}
                 </p>
               </div>
-              <div className="bg-green-50 p-4 rounded-lg">
-                <p className="text-sm text-gray-600 mb-1">Number of Expenses</p>
+              <div className="bg-green-50 p-3 rounded-lg">
+                <p className="text-sm text-gray-600 mb-1">Transactions</p>
                 <p className="text-2xl font-bold text-green-600">
-                  {trip.expenses.length}
+                  {expenses.length}
                 </p>
               </div>
             </div>
           </div>
+        </div>
 
-          {/* Expenses Section - Placeholder for Part 3 */}
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold text-gray-800">
-                📝 Expenses
-              </h2>
+        {/* Main Content - Tabs */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Tab Navigation */}
+          <div className="bg-white rounded-lg shadow-md">
+            <div className="flex border-b">
               <button
-                disabled
-                className="bg-gray-300 text-gray-500 px-4 py-2 rounded-lg cursor-not-allowed"
+                onClick={() => setActiveTab('expenses')}
+                className={`flex-1 px-6 py-4 font-semibold transition ${
+                  activeTab === 'expenses'
+                    ? 'text-blue-600 border-b-2 border-blue-600'
+                    : 'text-gray-500 hover:text-gray-700'
+                }`}
               >
-                + Add Expense (Coming in Part 3)
+                📝 Expenses
+              </button>
+              <button
+                onClick={() => setActiveTab('settlement')}
+                className={`flex-1 px-6 py-4 font-semibold transition ${
+                  activeTab === 'settlement'
+                    ? 'text-blue-600 border-b-2 border-blue-600'
+                    : 'text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                ⚖️ Settlement
               </button>
             </div>
 
-            {trip.expenses.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
-                <p className="text-4xl mb-2">📊</p>
-                <p>No expenses added yet</p>
-                <p className="text-sm mt-1">Add expenses in Part 3!</p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {/* Expenses will be displayed here in Part 3 */}
-              </div>
-            )}
+            {/* Tab Content */}
+            <div className="p-6">
+              {activeTab === 'expenses' && (
+                <div>
+                  <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-xl font-semibold text-gray-800">
+                      All Expenses
+                    </h2>
+                    <button
+                      onClick={() => setShowAddModal(true)}
+                      className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
+                    >
+                      + Add Expense
+                    </button>
+                  </div>
+
+                  {expenses.length === 0 ? (
+                    <div className="text-center py-12 text-gray-500">
+                      <p className="text-4xl mb-2">📊</p>
+                      <p>No expenses added yet</p>
+                      <p className="text-sm mt-1">Click "Add Expense" to get started</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {expenses.map((expense) => (
+                        <ExpenseCard
+                          key={expense._id}
+                          expense={expense}
+                          currentUserId={user._id}
+                          onDelete={handleDeleteExpense}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {activeTab === 'settlement' && (
+                <SettlementSection tripId={id} currentUserId={user._id} tripName={trip.name} />
+              )}            
+            </div>
           </div>
         </div>
       </div>
+
+      {/* Add Expense Modal */}
+      {showAddModal && (
+        <AddExpenseModal
+          tripId={id}
+          members={trip.members}
+          onClose={() => setShowAddModal(false)}
+          onExpenseAdded={handleExpenseAdded}
+        />
+      )}
     </div>
   );
 };

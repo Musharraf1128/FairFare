@@ -7,6 +7,8 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import CreateTrip from './pages/CreateTrip';
 import TripDetail from './pages/TripDetail';
+import Dashboard from './pages/Dashboard'; 
+import Footer from './components/Footer';
 
 function App() {
   return (
@@ -18,6 +20,11 @@ function App() {
             <Route path="/" element={
               <PrivateRoute>
                 <Home />
+              </PrivateRoute>
+            } />
+            <Route path="/dashboard" element={
+              <PrivateRoute>
+                <Dashboard />
               </PrivateRoute>
             } />
             <Route path="/trips/create" element={
@@ -35,6 +42,7 @@ function App() {
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
         </div>
+        <Footer />
       </Router>
     </AuthProvider>
   );

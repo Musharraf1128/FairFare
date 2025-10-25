@@ -7,28 +7,52 @@ const CreateTrip = () => {
     name: '',
     description: '',
   });
-  const [memberEmails, setMemberEmails] = useState(['']);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [selectedMembers, setSelectedMembers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [searching, setSearching] = useState(false);
   const navigate = useNavigate();
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleEmailChange = (index, value) => {
-    const newEmails = [...memberEmails];
-    newEmails[index] = value;
-    setMemberEmails(newEmails);
+  // Search users as you type
+  const handleSearch = async (query) => {
+    setSearchQuery(query);
+    
+    if (query.trim().length < 2) {
+      setSearchResults([]);
+      return;
+    }
+
+    setSearching(true);
+    try {
+      const { data } = await API.get(`/trips/users/search?query=${query}`);
+      // Filter out already selected members
+      const filtered = data.filter(
+        user => !selectedMembers.some(member => member._id === user._id)
+      );
+      setSearchResults(filtered);
+    } catch (err) {
+      console.error('Search error:', err);
+    } finally {
+      setSearching(false);
+    }
   };
 
-  const addEmailField = () => {
-    setMemberEmails([...memberEmails, '']);
+  // Add member to selected list
+  const addMember = (user) => {
+    setSelectedMembers([...selectedMembers, user]);
+    setSearchQuery('');
+    setSearchResults([]);
   };
 
-  const removeEmailField = (index) => {
-    const newEmails = memberEmails.filter((_, i) => i !== index);
-    setMemberEmails(newEmails);
+  // Remove member from selected list
+  const removeMember = (userId) => {
+    setSelectedMembers(selectedMembers.filter(member => member._id !== userId));
   };
 
   const handleSubmit = async (e) => {
@@ -37,12 +61,11 @@ const CreateTrip = () => {
     setLoading(true);
 
     try {
-      // Filter out empty emails
-      const validEmails = memberEmails.filter(email => email.trim() !== '');
+      const memberEmails = selectedMembers.map(member => member.email);
 
       const { data } = await API.post('/trips', {
         ...formData,
-        memberEmails: validEmails
+        memberEmails
       });
 
       navigate(`/trips/${data._id}`);
@@ -96,43 +119,74 @@ const CreateTrip = () => {
             />
           </div>
 
-          {/* Members */}
+          {/* Members Search */}
           <div>
             <label className="block text-gray-700 font-medium mb-2">
-              Add Members (by email)
+              Add Members
             </label>
             <p className="text-sm text-gray-500 mb-3">
-              You will be automatically added as a member
+              Search by name or email. You will be automatically added as a member.
             </p>
 
-            {memberEmails.map((email, index) => (
-              <div key={index} className="flex space-x-2 mb-2">
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => handleEmailChange(index, e.target.value)}
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="friend@example.com"
-                />
-                {memberEmails.length > 1 && (
-                  <button
-                    type="button"
-                    onClick={() => removeEmailField(index)}
-                    className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
-                  >
-                    Remove
-                  </button>
-                )}
-              </div>
-            ))}
+            {/* Search Input */}
+            <div className="relative">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => handleSearch(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="Search users by name or email..."
+              />
+              
+              {/* Search Results Dropdown */}
+              {searchQuery.length >= 2 && (
+                <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                  {searching ? (
+                    <div className="px-4 py-3 text-gray-500">Searching...</div>
+                  ) : searchResults.length > 0 ? (
+                    searchResults.map((user) => (
+                      <div
+                        key={user._id}
+                        onClick={() => addMember(user)}
+                        className="px-4 py-3 hover:bg-blue-50 cursor-pointer border-b last:border-b-0"
+                      >
+                        <p className="font-medium text-gray-800">{user.name}</p>
+                        <p className="text-sm text-gray-500">{user.email}</p>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="px-4 py-3 text-gray-500">
+                      No users found. They need to register first.
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
 
-            <button
-              type="button"
-              onClick={addEmailField}
-              className="mt-2 text-blue-600 hover:text-blue-700 font-medium"
-            >
-              + Add Another Member
-            </button>
+            {/* Selected Members */}
+            {selectedMembers.length > 0 && (
+              <div className="mt-4 space-y-2">
+                <p className="text-sm font-medium text-gray-700">Selected Members:</p>
+                {selectedMembers.map((member) => (
+                  <div
+                    key={member._id}
+                    className="flex items-center justify-between bg-blue-50 px-4 py-2 rounded-lg"
+                  >
+                    <div>
+                      <p className="font-medium text-gray-800">{member.name}</p>
+                      <p className="text-sm text-gray-500">{member.email}</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => removeMember(member._id)}
+                      className="text-red-500 hover:text-red-700"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Buttons */}
